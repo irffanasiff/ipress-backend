@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 // a user model is created
 const userSchema = new mongoose.Schema(
@@ -32,5 +32,13 @@ userSchema.methods.isValidPassword = function (enteredPassword) {
   return bcrypt.compareSync(enteredPassword, this.password);
 };
 
+userSchema.pre("validate", async function (next) {
+  if (!this.isModified("password")) {
+    next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
 // a user model is exported
-export default mongoose.model('User', userSchema);
+export default mongoose.model("User", userSchema);

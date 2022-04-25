@@ -1,6 +1,7 @@
-import asyncHandler from 'express-async-handler';
-import User from '../Models/user.model.js';
-import _ from 'lodash';
+import asyncHandler from "express-async-handler";
+import User from "../Models/user.model.js";
+import _ from "lodash";
+import generateToken from "../Utils/generateToken.js";
 //import jwt from 'jsonwebtoken';
 //import { OAuth2Client } from "google-auth-library";
 //import { validationResult } from('express-validator');
@@ -24,16 +25,88 @@ export const loginController = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
-      token: null,
+      token: generateToken(user),
     });
   } else {
-    console.log('err');
+    console.log("err");
     res.status(401);
-    throw new Error('Invalid user credentials');
+    throw new Error("Invalid user credentials");
   }
 });
 
-exports.registerController = (req, res) => {
+// @desc   GET user profile
+// @route  GET api/user/profile
+// @access PRIVATE
+export const getUserProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (user) {
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
+// @desc   Register a newuser
+// @route  POST api/user
+// @access PUBLIC
+export const registerUser = asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    res.status(400);
+    throw new Error("User Already exists");
+  }
+  const user = await User.create({ name, email, password });
+  if (user) {
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      token: generateToken(user),
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
+// @desc    Update user profile
+// @route   PUT /api/user/profile
+// @access  Private
+
+export const updateUserProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+    if (req.body.password) {
+      user.password = req.body.password;
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAdmin: updatedUser.isAdmin,
+      token: generateToken(updatedUser._id),
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
+/* export const registerController = (req, res) => {
   const { name, email, password } = req.body;
 
   User.findOne({
@@ -41,7 +114,7 @@ exports.registerController = (req, res) => {
   }).exec((err, user) => {
     if (user) {
       return res.status(400).json({
-        message: 'Email is taken',
+        message: "Email is taken",
       });
     }
   });
@@ -55,33 +128,33 @@ exports.registerController = (req, res) => {
     },
     process.env.JWT_ACCOUNT_ACTIVATION,
     {
-      expiresIn: '5m',
+      expiresIn: "5m",
     }
   );
-  
+
   // Email Data
   const emailData = {
-    from: 'Brightigo <mailgun@brightigo.xyz>',
+    from: "Brightigo <mailgun@brightigo.xyz>",
     to: email,
-    subject: 'Brightigo Account activation link',
-    text: 'Testing some Mailgun awesomness!',
-    html: '',
+    subject: "Brightigo Account activation link",
+    text: "Testing some Mailgun awesomness!",
+    html: "",
   };
   // send the email data
   mg.messages
-    .create('brightigo.xyz', emailData)
+    .create("brightigo.xyz", emailData)
     .then(() => {
       return res.json({
         message: `Email has been sent to ${email}`,
       });
     })
     .catch((err) => {
-      console.log('Mailgun error ', err);
+      console.log("Mailgun error ", err);
       return res.status(400).json({
         error: errorHandler(err),
       });
     });
-};
+}; */
 /*
 //activation and save to database
 exports.activationController = (req, res) => {

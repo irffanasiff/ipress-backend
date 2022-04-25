@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 // a order model is created
 const orderSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   orderItems: [
@@ -27,7 +27,7 @@ const orderSchema = new mongoose.Schema({
       },
       product: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
+        ref: "Product",
         required: true,
       },
     },
@@ -53,58 +53,57 @@ const orderSchema = new mongoose.Schema({
       type: String,
       required: true,
     },
-    paymentMethod: {
+  },
+  paymentMethod: {
+    type: String,
+    required: true,
+  },
+  paymentResult: {
+    id: {
       type: String,
-      required: true,
     },
-    paymentResult: {
-      id: {
-        type: String,
-      },
-      status: {
-        type: String,
-      },
-      update_time: {
-        type: String,
-      },
-      email_address: {
-        type: String,
-      },
+    status: {
+      type: String,
     },
-    taxPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
+    update_time: {
+      type: String,
     },
-    shippingPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
+    email_address: {
+      type: String,
     },
-    totalPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
-    },
-    isPaid: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-    paidAt: {
-      type: Date,
-    },
-    isDelivered: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-    deliveredAt: {
-      type: Date,
-    },
+  },
+  taxPrice: {
+    type: Number,
+    required: true,
+    default: 0.0,
+  },
+  shippingPrice: {
+    type: Number,
+    required: true,
+    default: 0.0,
+  },
+  totalPrice: {
+    type: Number,
+    required: true,
+    default: 0.0,
+  },
+  isPaid: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  paidAt: {
+    type: Date,
+  },
+  isDelivered: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  deliveredAt: {
+    type: Date,
   },
 });
 
 // a order model is exported
-export default mongoose.model('Order', orderSchema);
-
+export default mongoose.model("Order", orderSchema);
