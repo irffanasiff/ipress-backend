@@ -1,23 +1,36 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 // a printing product schema is created
 const productSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     name: {
       type: String,
       required: true,
-    },
+    } /* 
     details: {
       type: String,
       required: true,
-    },
+    }, */,
     fields: [
       {
-        name: {
+        product_orientation: {
           type: String,
           required: true,
         },
-        placeholder: {
+        paper_thickness: {
+          type: String,
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+        },
+        size: {
           type: String,
           required: true,
         },
@@ -31,21 +44,23 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       required: true,
     },
-    designs: [
-      {
-        price: {
-          type: Number,
-          required: true,
-        },
-        image: {
-          type: String,
-          required: true,
-        },
+    design: {
+      image: {
+        type: String,
+        required: true,
       },
-    ],
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    isOrdered: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
 
 // a product model is exported
-export default mongoose.model('Product', productSchema);
+export default mongoose.model("Product", productSchema);
