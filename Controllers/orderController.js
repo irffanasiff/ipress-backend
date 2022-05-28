@@ -5,7 +5,9 @@ import Order from "../Models/order.model.js";
 //@route GET /api/orders
 //@access Private
 export const getOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ user: req.user._id });
+  const orders = await Order.find({ user: req.user._id }).populate(
+    "orderItems.product"
+  );
   res.status(200).json(orders);
 });
 
@@ -24,7 +26,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         }
       );
     });
-
+    sendEmail(user.email, "SUCCESSFULLY ORDERED!!");
     res.status(201).json(createdOrder);
   } catch (e) {
     console.log(e);

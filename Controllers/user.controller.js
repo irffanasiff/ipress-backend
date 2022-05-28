@@ -2,24 +2,29 @@ import asyncHandler from "express-async-handler";
 import User from "../Models/user.model.js";
 import _ from "lodash";
 import generateToken from "../Utils/generateToken.js";
+import { sendEmail } from "../Utils/sendMail.js";
 //import jwt from 'jsonwebtoken';
 //import { OAuth2Client } from "google-auth-library";
 //import { validationResult } from('express-validator');
 //import { errorHandler } from ('../helpers/dbErrorHandling');
 
-// import formData from('form-data');
-// import Mailgun from('mailgun.js');
-// const mailgun = new Mailgun(formData);
-// const mg = mailgun.client({
-//   username: '',
-//   key: process.env.MAILGUN_API_KEY,
-//   public_key: process.env.MAILGUN_PUB_KEY,
-// });
+/* import formData from "form-data";
+import Mailgun from "mailgun.js";
+const mailgun = new Mailgun(formData);
+const mg = mailgun.client({
+  username: "Anoymous",
+  key: process.env.MAILGUN_API_KEY,
+  public_key: process.env.MAILGUN_PUB_KEY,
+}); */
 
 export const loginController = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (user && (await user.isValidPassword(password))) {
+    sendEmail(
+      user.email,
+      "SUCCESSFULLY LOGED IN!! HERE ARE SOME OF OUR PRODUCTS"
+    );
     res.json({
       _id: user._id,
       name: user.name,
@@ -28,7 +33,7 @@ export const loginController = asyncHandler(async (req, res) => {
       token: generateToken(user),
     });
   } else {
-    console.log("err");
+    console.log("Invalid user credentials");
     res.status(401);
     throw new Error("Invalid user credentials");
   }
@@ -64,6 +69,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   }
   const user = await User.create({ name, email, password });
   if (user) {
+    sendEmail(user.email, "SUCCESSFULLY REGISTERED!!");
     res.status(201).json({
       _id: user._id,
       name: user.name,
@@ -86,19 +92,26 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
 
   if (user) {
     user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
+    if (req.body.email) {
+      let existingUser = await User.find({ email: req.body.email });
+      if (!existingUser.length) {
+        user.email = req.body.email;
+        sendEmail(user.email, "EMAIL UPDATED !!");
+      }
+    }
     if (req.body.password) {
       user.password = req.body.password;
+      sendEmail(user.email, "PASSWORD UPDATED !!");
     }
 
     const updatedUser = await user.save();
-
+    // send email to user
     res.json({
       _id: updatedUser._id,
       name: updatedUser.name,
       email: updatedUser.email,
       isAdmin: updatedUser.isAdmin,
-      token: generateToken(updatedUser._id),
+      // token: generateToken(updatedUser._id),
     });
   } else {
     res.status(404);
@@ -106,55 +119,6 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
-/* export const registerController = (req, res) => {
-  const { name, email, password } = req.body;
-
-  User.findOne({
-    email,
-  }).exec((err, user) => {
-    if (user) {
-      return res.status(400).json({
-        message: "Email is taken",
-      });
-    }
-  });
-
-  //GENERATE TOKEN
-  const token = jwt.sign(
-    {
-      name,
-      email,
-      password,
-    },
-    process.env.JWT_ACCOUNT_ACTIVATION,
-    {
-      expiresIn: "5m",
-    }
-  );
-
-  // Email Data
-  const emailData = {
-    from: "Brightigo <mailgun@brightigo.xyz>",
-    to: email,
-    subject: "Brightigo Account activation link",
-    text: "Testing some Mailgun awesomness!",
-    html: "",
-  };
-  // send the email data
-  mg.messages
-    .create("brightigo.xyz", emailData)
-    .then(() => {
-      return res.json({
-        message: `Email has been sent to ${email}`,
-      });
-    })
-    .catch((err) => {
-      console.log("Mailgun error ", err);
-      return res.status(400).json({
-        error: errorHandler(err),
-      });
-    });
-}; */
 /*
 //activation and save to database
 exports.activationController = (req, res) => {
