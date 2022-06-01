@@ -9,11 +9,11 @@ const mg = mailgun.client({
   key: process.env.MAILGUN_API_KEY,
 });
 
-export const sendEmail = (reciever, text, html) => {
+export const sendEmail = (reciever, text, html, subject) => {
   const emailData = {
     from: "Ipress <me@sandbox75bfd4bf20ec4e3da43ae880a816e29b.mailgun.org>",
     to: "namitarastogimwn@gmail.com",
-    subject: "USER UPDATED",
+    subject: subject || "USER UPDATED",
     text: text || "",
     html: html || "",
   };
