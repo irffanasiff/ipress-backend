@@ -52,4 +52,7 @@ app.get("/api/images", (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(5000, console.log("🖥  Server running on port 5000".blue.bold));
+app.listen(
+  process.env.PORT || 5000,
+  console.log("🖥  Server running on port 5000".blue.bold)
+);
