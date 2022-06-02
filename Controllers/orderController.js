@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Product from "../Models/product.model.js";
 import Order from "../Models/order.model.js";
+import { sendEmail } from "../Utils/sendMail.js";
 //@desc fetch all users order
 //@route GET /api/orders
 //@access Private
