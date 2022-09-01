@@ -36,6 +36,7 @@ app.get("/api/images", (req, res) => {
     api_key: process.env.CLOUD_API_KEY,
     api_secret: process.env.CLOUD_API_SECRET,
     secure: true,
+    quality: "auto",
   });
   try {
     cloudinary.search

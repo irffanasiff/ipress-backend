@@ -16,26 +16,10 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     }, */,
-    fields: [
-      {
-        product_orientation: {
-          type: String,
-          required: true,
-        },
-        paper_thickness: {
-          type: String,
-          required: true,
-        },
-        quantity: {
-          type: Number,
-          required: true,
-        },
-        size: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
+    fields: {
+      type: Object,
+      required: true,
+    },
     browseDesign: {
       type: Boolean,
       required: true,

@@ -14,12 +14,12 @@ export const getOrders = asyncHandler(async (req, res) => {
 
 export const createOrder = asyncHandler(async (req, res) => {
   try {
-    const order = new Order({ ...req.body });
+    const order = new Order({ ...req.body.order });
     const createdOrder = await order.save();
-    order.orderItems.map(({ product }) => {
+    order.orderItems.map(({ product }, index) => {
       Product.findByIdAndUpdate(
         product,
-        { isOrdered: true },
+        { isOrdered: true, fields: { ...req.body.cartItems[index].fields } },
         function (err, docs) {
           if (err) {
             console.log(err);
@@ -27,7 +27,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         }
       );
     });
-    sendEmail(user.email, "SUCCESSFULLY ORDERED!!");
+    sendEmail("", "SUCCESSFULLY ORDERED!!");
     res.status(201).json(createdOrder);
   } catch (e) {
     console.log(e);
