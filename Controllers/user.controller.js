@@ -1,9 +1,11 @@
-import asyncHandler from "express-async-handler";
-import User from "../Models/user.model.js";
-import _ from "lodash";
-import jwt from "jsonwebtoken";
-import generateToken from "../Utils/generateToken.js";
-import { sendEmail } from "../Utils/sendMail.js";
+import asyncHandler from 'express-async-handler';
+import User from '../Models/user.model.js';
+import Order from '../Models/order.model.js';
+import Product from '../Models/product.model.js';
+import _ from 'lodash';
+import jwt from 'jsonwebtoken';
+import generateToken from '../Utils/generateToken.js';
+import { sendEmail } from '../Utils/sendMail.js';
 //import jwt from 'jsonwebtoken';
 //import { OAuth2Client } from "google-auth-library";
 //import { validationResult } from('express-validator');
@@ -17,14 +19,40 @@ const mg = mailgun.client({
   key: process.env.MAILGUN_API_KEY,
   public_key: process.env.MAILGUN_PUB_KEY,
 }); */
+export const getAllDetails = asyncHandler(async (req, res) => {
+  if (req.user.isAdmin) {
+    const [users, orders, products] = await Promise.all([
+      User.find({ isAdmin: false }).lean(),
+      Order.find().lean(),
+      Product.find().lean(),
+    ]);
+    res.status(201).json({ users, orders, products });
+  } else {
+    res.status(401);
+    throw new Error('YOU ARE NOT THE ADMIN!!!');
+  }
+});
+export const deleteUser = asyncHandler(async (req, res) => {
+  if (req.user.isAdmin) {
+    const user = await User.findById(req.params.id);
+    const orders = await Order.find({ user: req.params.id });
+    const products = await Product.find({ user: req.params.id });
 
+    //DELETE ALL THREE
+    console.log(user, orders, products);
+    res.status(201).json(user);
+  } else {
+    res.status(401);
+    throw new Error('YOU ARE NOT THE ADMIN!!!');
+  }
+});
 export const loginController = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (user && (await user.isValidPassword(password))) {
     sendEmail(
       user.email,
-      "SUCCESSFULLY LOGED IN!! HERE ARE SOME OF OUR PRODUCTS"
+      'SUCCESSFULLY LOGED IN!! HERE ARE SOME OF OUR PRODUCTS'
     );
     res.json({
       _id: user._id,
@@ -34,9 +62,9 @@ export const loginController = asyncHandler(async (req, res) => {
       token: generateToken(user),
     });
   } else {
-    console.log("Invalid user credentials");
+    console.log('Invalid user credentials');
     res.status(401);
-    throw new Error("Invalid user credentials");
+    throw new Error('Invalid user credentials');
   }
 });
 
@@ -54,7 +82,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(404);
-    throw new Error("User not found");
+    throw new Error('User not found');
   }
 });
 
@@ -66,11 +94,11 @@ export const registerUser = asyncHandler(async (req, res) => {
   const userExists = await User.findOne({ email });
   if (userExists) {
     res.status(400);
-    throw new Error("User Already exists");
+    throw new Error('User Already exists');
   }
   const user = await User.create({ name, email, password });
   if (user) {
-    sendEmail(user.email, "SUCCESSFULLY REGISTERED!!");
+    sendEmail(user.email, 'SUCCESSFULLY REGISTERED!!');
     res.status(201).json({
       _id: user._id,
       name: user.name,
@@ -80,7 +108,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(404);
-    throw new Error("User not found");
+    throw new Error('User not found');
   }
 });
 
@@ -97,12 +125,12 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
       let existingUser = await User.find({ email: req.body.email });
       if (!existingUser.length) {
         user.email = req.body.email;
-        sendEmail(user.email, "EMAIL UPDATED !!");
+        sendEmail(user.email, 'EMAIL UPDATED !!');
       }
     }
     if (req.body.password) {
       user.password = req.body.password;
-      sendEmail(user.email, "PASSWORD UPDATED !!");
+      sendEmail(user.email, 'PASSWORD UPDATED !!');
     }
 
     const updatedUser = await user.save();
@@ -116,7 +144,7 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(404);
-    throw new Error("User not found");
+    throw new Error('User not found');
   }
 });
 
@@ -130,7 +158,7 @@ export const forgotPasswordController = (req, res) => {
     (err, user) => {
       if (err || !user) {
         return res.status(400).json({
-          message: "User does not exist",
+          message: 'User does not exist',
         });
       }
       const token = jwt.sign(
@@ -139,7 +167,7 @@ export const forgotPasswordController = (req, res) => {
         },
         process.env.JWT_RESET_PASSWORD,
         {
-          expiresIn: "10m",
+          expiresIn: '10m',
         }
       );
 
@@ -149,21 +177,21 @@ export const forgotPasswordController = (req, res) => {
         },
         (err, success) => {
           if (err) {
-            console.log("RESET PASSWORD LINK ERROR", err);
+            console.log('RESET PASSWORD LINK ERROR', err);
             return res.status(400).json({
               message:
-                "Database connection error on user password forgot request",
+                'Database connection error on user password forgot request',
             });
           } else {
             sendEmail(
-              "me",
-              "",
+              'me',
+              '',
               `<html><a href="http://stackoverflow.com">For ${user.email}</a>
               <h1>Change password:  
               Copy and paste this link in your browser: "http://localhost:3000/reset-password?token=${token}"</h1>
               </html>
               `,
-              "Reset password"
+              'Reset password'
             );
             return res.status(201);
           }
@@ -183,7 +211,7 @@ export const resetPasswordController = (req, res) => {
       function (err, decoded) {
         if (err) {
           return res.status(400).json({
-            message: "Expired link. Try again",
+            message: 'Expired link. Try again',
           });
         }
 
@@ -194,20 +222,20 @@ export const resetPasswordController = (req, res) => {
           (err, user) => {
             if (err || !user) {
               return res.status(400).json({
-                message: "Something went wrong. Try later",
+                message: 'Something went wrong. Try later',
               });
             }
 
             const updatedFields = {
               password: newPassword,
-              resetPasswordLink: "",
+              resetPasswordLink: '',
             };
 
             user = _.extend(user, updatedFields);
             user.save((err, result) => {
               if (err) {
                 return res.status(400).json({
-                  message: "Error resetting user password",
+                  message: 'Error resetting user password',
                 });
               }
               res.json({

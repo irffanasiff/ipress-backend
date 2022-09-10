@@ -1,4 +1,4 @@
-import express from "express";
+import express from 'express';
 const router = express.Router();
 import {
   loginController,
@@ -7,15 +7,18 @@ import {
   updateUserProfile,
   forgotPasswordController,
   resetPasswordController,
-} from "../Controllers/user.controller.js";
-import protect from "../Middleware/auth.middleware.js";
+  deleteUser,
+  getAllDetails,
+} from '../Controllers/user.controller.js';
+import protect from '../Middleware/auth.middleware.js';
 
-router.route("/").post(registerUser);
-router.post("/login", loginController);
-router.post("/link", forgotPasswordController);
-router.post("/password", resetPasswordController);
+router.route('/').post(registerUser).get(protect, getAllDetails);
+router.route('/admin/:id').delete(protect, deleteUser);
+router.post('/login', loginController);
+router.post('/link', forgotPasswordController);
+router.post('/password', resetPasswordController);
 router
-  .route("/profile")
+  .route('/profile')
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
 
