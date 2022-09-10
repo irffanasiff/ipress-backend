@@ -34,13 +34,17 @@ export const getAllDetails = asyncHandler(async (req, res) => {
 });
 export const deleteUser = asyncHandler(async (req, res) => {
   if (req.user.isAdmin) {
-    const user = await User.findById(req.params.id);
-    const orders = await Order.find({ user: req.params.id });
-    const products = await Product.find({ user: req.params.id });
-
-    //DELETE ALL THREE
-    console.log(user, orders, products);
-    res.status(201).json(user);
+    const orders = await Order.deleteMany({ user: req.params.id });
+    const products = await Product.deleteMany({ user: req.params.id });
+    const user = await User.findByIdAndDelete(req.params.id);
+    const [newUsers, newOrders, newProducts] = await Promise.all([
+      User.find({ isAdmin: false }).lean(),
+      Order.find().lean(),
+      Product.find().lean(),
+    ]);
+    res
+      .status(201)
+      .json({ users: newUsers, orders: newOrders, products: newProducts });
   } else {
     res.status(401);
     throw new Error('YOU ARE NOT THE ADMIN!!!');
