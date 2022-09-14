@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 // a printing product schema is created
 const itemSchema = new mongoose.Schema({
@@ -25,5 +25,8 @@ const itemSchema = new mongoose.Schema({
   inquiry: {
     type: Boolean,
   },
+  price: {
+    type: Number,
+  },
 });
-export default mongoose.model("Item", itemSchema);
+export default mongoose.model('Item', itemSchema);

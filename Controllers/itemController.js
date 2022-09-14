@@ -19,11 +19,12 @@ export const addItems = expressAsyncHandler(async (req, res) => {
 export const editItems = expressAsyncHandler(async (req, res) => {
   try {
     if (req.user.isAdmin) {
-      const { index, field, value, image, type, folder } = req.body;
+      const { index, field, value, image, type, folder, price } = req.body;
       const item = await Item.findById(req.body.id);
       if (field || field === 0) {
         let arr = value.split(',').filter((i) => i && i.trim());
-        item.children[index].fields[field].value = arr;
+        if (index) item.children[index].fields[field].value = arr;
+        else item.fields[field].value = arr;
         // Mongodb won't pick up such a deep change
         item.markModified('children');
         await item.save();
@@ -40,9 +41,11 @@ export const editItems = expressAsyncHandler(async (req, res) => {
               res.status(201).json(result);
             } else {
               let url = result.secure_url.split('upload/');
-              item.children[index].image.push(
-                url[0] + 'upload/q_auto/' + url[1]
-              );
+              if (index)
+                item.children[index].image.push(
+                  url[0] + 'upload/q_auto/' + url[1]
+                );
+              else item.image.push(url[0] + 'upload/q_auto/' + url[1]);
               item.markModified('children');
               await item.save();
               const navItems = await Item.find();
@@ -62,10 +65,13 @@ export const editItems = expressAsyncHandler(async (req, res) => {
             if (folder) {
               res.status(201).json(result);
             } else {
-              let imgArray = item.children[index].image.filter(
-                (img) => !img.includes(image)
-              );
-              item.children[index].image = imgArray;
+              let imgArray = index
+                ? item.children[index].image.filter(
+                    (img) => !img.includes(image)
+                  )
+                : item.image.filter((img) => !img.includes(image));
+              if (index) item.children[index].image = imgArray;
+              else item.image = imgArray;
               // Mongodb won't pick up such a deep change
               item.markModified('children');
               await item.save();
@@ -73,7 +79,23 @@ export const editItems = expressAsyncHandler(async (req, res) => {
               res.status(201).json(navItems);
             }
           });
+      } else if (price) {
+        if (index) {
+          item.children[index].price = price;
+          item.markModified('children');
+        } else {
+          item.price = price;
+          console.log('out');
+        }
+        try {
+          await item.save();
+          const navItems = await Item.find();
+          res.status(201).json(navItems);
+        } catch (e) {
+          console.log(e);
+        }
       }
+      res.status(201);
     } else {
       res.status(404);
     }
