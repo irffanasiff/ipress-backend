@@ -54,10 +54,6 @@ export const loginController = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (user && (await user.isValidPassword(password))) {
-    sendEmail(
-      user.email,
-      'SUCCESSFULLY LOGED IN!! HERE ARE SOME OF OUR PRODUCTS'
-    );
     res.json({
       _id: user._id,
       name: user.name,
@@ -102,7 +98,9 @@ export const registerUser = asyncHandler(async (req, res) => {
   }
   const user = await User.create({ name, email, password });
   if (user) {
-    sendEmail(user.email, 'SUCCESSFULLY REGISTERED!!');
+    sendEmail(user.email, 'user_signup', 'SUCCESSFULLY REGISTERED!!', {
+      url: 'https://ipress-frontend.vercel.app',
+    });
     res.status(201).json({
       _id: user._id,
       name: user.name,
@@ -129,12 +127,18 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
       let existingUser = await User.find({ email: req.body.email });
       if (!existingUser.length) {
         user.email = req.body.email;
-        sendEmail(user.email, 'EMAIL UPDATED !!');
+        sendEmail(user.email, 'user_updated', 'EMAIL SUCCESSFULLY UPDATED!!', {
+          url: 'https://ipress-frontend.vercel.app',
+          field: 'User',
+        });
       }
     }
     if (req.body.password) {
       user.password = req.body.password;
-      sendEmail(user.email, 'PASSWORD UPDATED !!');
+      sendEmail(user.email, 'user_updated', 'PASSWORD SUCCESSFULLY UPDATED!!', {
+        url: 'https://ipress-frontend.vercel.app',
+        field: 'Password',
+      });
     }
 
     const updatedUser = await user.save();
@@ -187,17 +191,12 @@ export const forgotPasswordController = (req, res) => {
                 'Database connection error on user password forgot request',
             });
           } else {
-            sendEmail(
-              'me',
-              '',
-              `<html><a href="http://stackoverflow.com">For ${user.email}</a>
-              <h1>Change password:  
-              Copy and paste this link in your browser: "http://localhost:3000/reset-password?token=${token}"</h1>
-              </html>
-              `,
-              'Reset password'
-            );
-            return res.status(201);
+            sendEmail(email, 'password_reset', 'Reset password', {
+              url: `https://ipress-frontend.vercel.app/reset-password?token=${token}`,
+            });
+            return res.status(201).json({
+              message: 'Please check your email for password reset link.',
+            });
           }
         }
       );
