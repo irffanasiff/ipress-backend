@@ -27,7 +27,27 @@ export const createOrder = asyncHandler(async (req, res) => {
         }
       );
     });
-    sendEmail('', 'SUCCESSFULLY ORDERED!!');
+    const { cartItems } = req.body;
+    const data = order.isPaid
+      ? {
+          img: cartItems[0].design.image,
+          id: order.paymentResult.id,
+          date: order.paymentResult.update_time,
+          name: order.paymentResult.name,
+          quantity: cartItems.length,
+          price: order.itemsPrice,
+          tax: order.taxPrice,
+          total: order.totalPrice,
+        }
+      : {
+          img: cartItems[0].design.image,
+          quantity: cartItems.length,
+          price: order.itemsPrice,
+          tax: order.taxPrice,
+          total: order.totalPrice,
+        };
+
+    sendEmail(req.user.email, 'order_paid', 'SUCCESSFULLY ORDERED!!', data);
     res.status(201).json(createdOrder);
   } catch (e) {
     console.log(e);
