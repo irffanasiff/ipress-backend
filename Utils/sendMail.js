@@ -3,7 +3,7 @@ import Mailgun from 'mailgun.js';
 import dotenv from 'dotenv';
 dotenv.config();
 const mailgun = new Mailgun(formData);
-const DOMAIN = 'sandbox75bfd4bf20ec4e3da43ae880a816e29b.mailgun.org';
+const DOMAIN = 'sandboxa048f5567cf3421b9f927ddcf3d8bc72.mailgun.org';
 const mg = mailgun.client({
   username: 'Anoymous',
   key: process.env.MAILGUN_API_KEY,
@@ -11,7 +11,7 @@ const mg = mailgun.client({
 
 export const sendEmail = (reciever, template, subject, data) => {
   let emailData = {
-    from: 'Ipress <me@sandbox75bfd4bf20ec4e3da43ae880a816e29b.mailgun.org>',
+    from: 'Ipress <me@sandboxa048f5567cf3421b9f927ddcf3d8bc72.mailgun.org>',
     to: reciever || 'namitarastogimwn@gmail.com',
     subject: subject || 'USER UPDATED',
     template: template,

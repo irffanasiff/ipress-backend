@@ -56,7 +56,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     sendEmail('', 'order_paid', 'SUCCESSFULLY ORDERED!!', data);
     sendEmail(
       'namita_2020bece034@nitsri.net',
-      'order_admin',
+      'paid_admin',
       'NEW ORDER!!',
       data
     );
