@@ -30,9 +30,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     const { cartItems } = req.body;
     const data = order.isPaid
       ? {
-          img: cartItems[0].design.image,
           id: order.paymentResult.id,
-          date: order.paymentResult.update_time,
+          date: order.paymentResult.update_time.split('T')[0],
           name: order.paymentResult.name,
           quantity: cartItems.length,
           price: order.itemsPrice,
@@ -40,14 +39,27 @@ export const createOrder = asyncHandler(async (req, res) => {
           total: order.totalPrice,
         }
       : {
-          img: cartItems[0].design.image,
+          id: 'NOT PAID',
+          date: new Date().split('T')[0],
+          name: req.user.name,
           quantity: cartItems.length,
           price: order.itemsPrice,
           tax: order.taxPrice,
           total: order.totalPrice,
         };
-
-    sendEmail(req.user.email, 'order_paid', 'SUCCESSFULLY ORDERED!!', data);
+    const adminData = {
+      ...data,
+      email: req.user.email,
+      paid: order.isPaid ? 'Yes' : 'No',
+      address: order.shippingAddress,
+    };
+    sendEmail('', 'order_paid', 'SUCCESSFULLY ORDERED!!', data);
+    sendEmail(
+      'namita_2020bece034@nitsri.net',
+      'order_admin',
+      'NEW ORDER!!',
+      data
+    );
     res.status(201).json(createdOrder);
   } catch (e) {
     console.log(e);
